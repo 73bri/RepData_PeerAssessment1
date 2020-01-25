@@ -86,7 +86,7 @@ hist1 <- hist(activity_steps_day$steps, main = "Total number of steps taken per 
      breaks = seq(0,25000, by=2500))
 ```
 
-![](PA1_template_files/figure-html/activity_steps_day-1.png)<!-- -->
+![](https://github.com/73bri/RepData_PeerAssessment1/blob/master/figure/hist1.png)<!-- -->
 
 ```r
 mean(activity_steps_day$steps)
@@ -118,7 +118,7 @@ plot10 <- plot(activity_day_average$interval, activity_day_average$mean, type = 
                main="Average number of steps per intervals")
 ```
 
-![](PA1_template_files/figure-html/activity_day_average-1.png)<!-- -->
+![](https://github.com/73bri/RepData_PeerAssessment1/blob/master/figure/plot10.png?raw=true)<!-- -->
 
 ```r
 activity_day_average[which.max(activity_day_average$mean), ]$interval
@@ -166,7 +166,7 @@ hist2 <- hist(total_steps_new$daily_steps, col = "blue",
               main = "Total number of steps taken each day", breaks = seq(0,25000,by=2500))
 ```
 
-![](PA1_template_files/figure-html/activity_new-1.png)<!-- -->
+![](https://github.com/73bri/RepData_PeerAssessment1/blob/master/figure/hist2.png?raw=true)<!-- -->
 
 ```r
 mean(total_steps_new$daily_steps)
@@ -251,5 +251,5 @@ plot11 <- ggplot(activity_time_series, aes(x = interval , y = steps, color = dat
 print(plot11)
 ```
 
-![](PA1_template_files/figure-html/activity_time_series-1.png)<!-- -->
+![](https://github.com/73bri/RepData_PeerAssessment1/blob/master/figure/plot11.png?raw=trueg)<!-- -->
 
