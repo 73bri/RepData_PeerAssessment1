@@ -1,0 +1,138 @@
+---
+title: "PA1_template"
+author: "Brigitte Vogelsangs"
+date: "24-1-2020"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+keep_md: yes
+---
+
+```{r}
+library(knitr)
+knitr::opts_chunk$set(echo=TRUE)
+```
+
+# Course project 1
+
+## Loading and preprocess the data
+The code used to load the data. 
+Dates are processed and summery created.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+activity <- read.csv("activity.csv")
+activity$date <- as.POSIXct(activity$date, tz= "GMT", "%Y-%m-%d")
+weekday <- weekdays(activity$date)
+activity <- cbind(activity, weekday)
+summary(activity)
+```
+
+## What is the mean total number of steps taken per day?
+
+Missing values in the dataset are ignored.
+
+- Calculate the total number of steps taken per day
+- Make a histogram of the total number of steps taken each day
+- Calculate and report the mean and median of the total number of steps taken per day
+
+```{r}
+activity_steps_day <- with(activity, aggregate(steps, by = list(date), FUN = sum, na.rm = TRUE))
+names(activity_steps_day) <- c("date", "steps")
+hist1 <- hist(activity_steps_day$steps, main = "Total number of steps taken per day", 
+     xlab = "Total steps taken per day", col = "blue", ylim = c(0,20), 
+     breaks = seq(0,25000, by=2500))
+mean(activity_steps_day$steps)
+median(activity_steps_day$steps)
+```
+
+## What is the daily average activity pattern?
+
+- Make a time series plot (i.e. \color{red}{\verb|type = "l"|}type="l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+- Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```{r}
+activity_day_average <- aggregate(activity$steps, by=list(activity$interval), FUN=mean, na.rm=TRUE)
+names(activity_day_average) <- c("interval", "mean")
+plot10 <- plot(activity_day_average$interval, activity_day_average$mean, type = "l", 
+               col="blue", lwd = 2, xlab="Interval", ylab="Average number of steps", 
+               main="Average number of steps per intervals")
+activity_day_average[which.max(activity_day_average$mean), ]$interval
+```
+
+## Imputing missing values
+There are a number of days/intervals where there are missing values (coded as \color{red}{\verb|NA|}NA). 
+The presence of missing days may introduce bias into some calculations or summaries of the data.
+
+Calculate and report the total number of missing values in the dataset.
+
+Created a set without missing data activity new by using the mean for the day
+
+
+```{r}
+sum(is.na(activity$steps))
+activity_replaceNA <- activity_day_average$mean[match(activity$interval, activity_day_average$interval)]
+```
+
+## Create a new dataset that is equal to the original dataset but with the missing data filled in.
+- Make a histogram of the total number of steps taken each day
+- Calculate and report the mean and median total number of steps taken per day. 
+- Do these values differ from the estimates from the first part of the assignment? 
+- What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+```{r}
+activity_new <- transform(activity, steps = ifelse(is.na(activity$steps), yes = activity_replaceNA, no = activity$steps))
+total_steps_new <- aggregate(steps ~ date, activity_new, sum)
+names(total_steps_new) <- c("date", "daily_steps")
+hist2 <- hist(total_steps_new$daily_steps, col = "blue", 
+              xlab = "Total steps per day", ylim = c(0,30), 
+              main = "Total number of steps taken each day", breaks = seq(0,25000,by=2500))
+mean(total_steps_new$daily_steps)
+median(total_steps_new$daily_steps)
+```
+
+There is a difference in value between the mean and the median
+```{r}
+difference1 <- mean(activity_steps_day$steps)-mean(total_steps_new$daily_steps)
+difference2 <- median(activity_steps_day$steps)-median(total_steps_new$daily_steps)
+difference1
+difference2
+```
+The impact shows a higher frequency of the total number of steps taken each day.
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+- Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
+```{r}
+activity_new$date <- as.Date(strptime(activity_new$date, format="%Y-%m-%d"))
+activity_new$datetype <- sapply(activity_new$date, function(x) {
+        if (weekdays(x) == "zaterdag" | weekdays(x) =="zondag") 
+                {y <- "Weekend"} else 
+                {y <- "Weekday"}
+                y
+        })
+str(activity_new$date)
+str(activity_new$datetype)
+```
+
+- Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+
+```{r}
+activity_new$date <- as.Date(strptime(activity_new$date, format="%Y-%m-%d"))
+activity_new$datetype <- sapply(activity_new$date, function(x) {
+        if (weekdays(x) == "zaterdag" | weekdays(x) =="zondag") 
+                {y <- "Weekend"} else 
+                {y <- "Weekday"}
+                y
+        })
+activity_time_series <- aggregate(steps~interval + datetype, activity_new, mean, na.rm = TRUE)
+plot11 <- ggplot(activity_time_series, aes(x = interval , y = steps, color = datetype)) +
+    geom_line() + labs(title = "Average daily steps by type of date", x = "Interval", 
+                       y = "Average number of steps") + facet_wrap(~datetype, ncol = 1, nrow=2)
+print(plot11)
+```
+
